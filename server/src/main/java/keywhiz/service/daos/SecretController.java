@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
 public class SecretController {
@@ -85,7 +86,7 @@ public class SecretController {
     checkArgument(!name.isEmpty());
     checkArgument(!secret.isEmpty());
     checkArgument(!creator.isEmpty());
-    String hmac = cryptographer.computeHmac(secret.getBytes()); // Compute HMAC on base64 encoded data
+    String hmac = cryptographer.computeHmac(secret.getBytes(UTF_8)); // Compute HMAC on base64 encoded data
     String encryptedSecret = cryptographer.encryptionKeyDerivedFrom(name).encrypt(secret);
     return new SecretBuilder(transformer, secretDAO, name, encryptedSecret, hmac, creator, expiry);
   }

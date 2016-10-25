@@ -51,8 +51,9 @@ public class SecretFixtures {
    * @return created secret model
    */
   public Secret createSecret(String name, String content) {
+    String hmac = cryptographer.computeHmac(content.getBytes());
     String encryptedContent = cryptographer.encryptionKeyDerivedFrom(name).encrypt(content);
-    long id = secretDAO.createSecret(name, encryptedContent, "creator", ImmutableMap.of(), 0, "", null,
+    long id = secretDAO.createSecret(name, encryptedContent, hmac, "creator", ImmutableMap.of(), 0, "", null,
         ImmutableMap.of());
     return transformer.transform(secretDAO.getSecretById(id).get());
   }

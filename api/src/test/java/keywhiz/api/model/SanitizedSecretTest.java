@@ -29,6 +29,7 @@ public class SanitizedSecretTest {
     SanitizedSecret sanitizedSecret = SanitizedSecret.of(
         767,
         "trapdoor",
+        "hmac",
         "v1",
         ApiDate.parse("2013-03-28T21:42:42.573Z"),
         "keywhizAdmin",

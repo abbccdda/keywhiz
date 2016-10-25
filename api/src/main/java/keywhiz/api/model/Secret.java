@@ -47,6 +47,7 @@ public class Secret {
   /** Base64-encoded content of this version of the secret. */
   private String secret;
   private final LazyString encryptedSecret;
+  private final String hmac;
 
   private final ApiDate createdAt;
   private final String createdBy;
@@ -65,6 +66,7 @@ public class Secret {
                 String name,
                 @Nullable String description,
                 LazyString encryptedSecret,
+                String hmac,
                 ApiDate createdAt,
                 @Nullable String createdBy,
                 ApiDate updatedAt,
@@ -79,6 +81,7 @@ public class Secret {
     this.name = name;
     this.description = nullToEmpty(description);
     this.encryptedSecret = checkNotNull(encryptedSecret);
+    this.hmac = hmac;
     this.createdAt = checkNotNull(createdAt);
     this.createdBy = nullToEmpty(createdBy);
     this.updatedAt = checkNotNull(updatedAt);
@@ -114,6 +117,8 @@ public class Secret {
     }
     return secret;
   }
+
+  public String getHmac() { return hmac; }
 
   public ApiDate getCreatedAt() {
     return createdAt;
@@ -163,6 +168,7 @@ public class Secret {
           Objects.equal(this.name, that.name) &&
           Objects.equal(this.description, that.description) &&
           Objects.equal(this.getSecret(), that.getSecret()) &&
+          Objects.equal(this.getHmac(), that.getHmac()) &&
           Objects.equal(this.createdAt, that.createdAt) &&
           Objects.equal(this.createdBy, that.createdBy) &&
           Objects.equal(this.updatedAt, that.updatedAt) &&
@@ -178,7 +184,7 @@ public class Secret {
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(id, name, description, getSecret(), createdAt, createdBy, updatedAt,
+    return Objects.hashCode(id, name, description, getSecret(), hmac, createdAt, createdBy, updatedAt,
         updatedBy, metadata, type, generationOptions, expiry);
   }
 
@@ -189,6 +195,7 @@ public class Secret {
         .add("name", name)
         .add("description", description)
         .add("secret", "[REDACTED]")
+        .add("hmac", hmac)
         .add("creationDate", createdAt)
         .add("createdBy", createdBy)
         .add("updatedDate", updatedAt)

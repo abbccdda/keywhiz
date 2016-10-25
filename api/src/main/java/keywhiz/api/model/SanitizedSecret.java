@@ -38,6 +38,7 @@ public abstract class SanitizedSecret {
   @JsonCreator public static SanitizedSecret of(
       @JsonProperty("id") long id,
       @JsonProperty("name") String name,
+      @JsonProperty("hmac") String hmac,
       @JsonProperty("description") @Nullable String description,
       @JsonProperty("createdAt") ApiDate createdAt,
       @JsonProperty("createdBy") @Nullable String createdBy,
@@ -51,13 +52,13 @@ public abstract class SanitizedSecret {
         (metadata == null) ? ImmutableMap.of() : ImmutableMap.copyOf(metadata);
     ImmutableMap<String, String> genOptions =
         (generationOptions == null) ? ImmutableMap.of() : ImmutableMap.copyOf(generationOptions);
-    return new AutoValue_SanitizedSecret(id, name, nullToEmpty(description), createdAt,
+    return new AutoValue_SanitizedSecret(id, name, hmac, nullToEmpty(description), createdAt,
         nullToEmpty(createdBy), updatedAt, nullToEmpty(updatedBy), meta, Optional.ofNullable(type),
         genOptions, expiry);
   }
 
   public static SanitizedSecret of(long id, String name) {
-    return of(id, name, null, new ApiDate(0), null, new ApiDate(0), null, null, null, null, 0);
+    return of(id, name, "", null, new ApiDate(0), null, new ApiDate(0), null, null, null, null, 0);
   }
 
   public static SanitizedSecret fromSecretSeriesAndContent(SecretSeriesAndContent seriesAndContent) {
@@ -66,6 +67,7 @@ public abstract class SanitizedSecret {
     return SanitizedSecret.of(
         series.id(),
         series.name(),
+        content.hmac(),
         series.description(),
         content.createdAt(),
         content.createdBy(),
@@ -88,6 +90,7 @@ public abstract class SanitizedSecret {
     return SanitizedSecret.of(
         secret.getId(),
         secret.getName(),
+        secret.getHmac(),
         secret.getDescription(),
         secret.getCreatedAt(),
         secret.getCreatedBy(),
@@ -101,6 +104,7 @@ public abstract class SanitizedSecret {
 
   @JsonProperty public abstract long id();
   @JsonProperty public abstract String name();
+  @JsonProperty public abstract String hmac();
   @JsonProperty public abstract String description();
   @JsonProperty public abstract ApiDate createdAt();
   @JsonProperty public abstract String createdBy();

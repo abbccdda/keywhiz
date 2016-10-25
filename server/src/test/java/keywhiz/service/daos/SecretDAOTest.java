@@ -54,21 +54,21 @@ public class SecretDAOTest {
   SecretSeries series1 = SecretSeries.of(1, "secret1", "desc1", date, "creator", date, "updater", null, null, 101L);
   String content = "c2VjcmV0MQ==";
   String encryptedContent = cryptographer.encryptionKeyDerivedFrom(series1.name()).encrypt(content);
-  SecretContent content1 = SecretContent.of(101, 1, encryptedContent, date, "creator", date, "updater", emptyMetadata,
+  SecretContent content1 = SecretContent.of(101, 1, encryptedContent, "hmac", date, "creator", date, "updater", emptyMetadata,
       0);
   SecretSeriesAndContent secret1 = SecretSeriesAndContent.of(series1, content1);
 
   SecretSeries series2 = SecretSeries.of(2, "secret2", "desc2", date, "creator", date, "updater", null, null, 103L);
-  SecretContent content2a = SecretContent.of(102, 2, encryptedContent, date, "creator", date, "updater", emptyMetadata,
+  SecretContent content2a = SecretContent.of(102, 2, encryptedContent, "hmac", date, "creator", date, "updater", emptyMetadata,
       0);
   SecretSeriesAndContent secret2a = SecretSeriesAndContent.of(series2, content2a);
 
-  SecretContent content2b = SecretContent.of(103, 2, "some other content", date, "creator", date, "updater",
+  SecretContent content2b = SecretContent.of(103, 2, "some other content", "hmac", date, "creator", date, "updater",
       emptyMetadata, 0);
   SecretSeriesAndContent secret2b = SecretSeriesAndContent.of(series2, content2b);
 
   SecretSeries series3 = SecretSeries.of(3, "secret3", "desc3", date, "creator", date, "updater", null, null, null);
-  SecretContent content3 = SecretContent.of(104, 3, encryptedContent, date, "creator", date, "updater", emptyMetadata,
+  SecretContent content3 = SecretContent.of(104, 3, encryptedContent, "hmac", date, "creator", date, "updater", emptyMetadata,
       0);
   SecretSeriesAndContent secret3 = SecretSeriesAndContent.of(series3, content3);
 
@@ -91,6 +91,7 @@ public class SecretDAOTest {
         .set(SECRETS_CONTENT.ID, secret1.content().id())
         .set(SECRETS_CONTENT.SECRETID, secret1.series().id())
         .set(SECRETS_CONTENT.ENCRYPTED_CONTENT, secret1.content().encryptedContent())
+        .set(SECRETS_CONTENT.CONTENT_HMAC, "hmac")
         .set(SECRETS_CONTENT.CREATEDBY, secret1.content().createdBy())
         .set(SECRETS_CONTENT.CREATEDAT, secret1.content().createdAt().toEpochSecond())
         .set(SECRETS_CONTENT.UPDATEDBY, secret1.content().updatedBy())
@@ -114,6 +115,7 @@ public class SecretDAOTest {
         .set(SECRETS_CONTENT.ID, secret2a.content().id())
         .set(SECRETS_CONTENT.SECRETID, secret2a.series().id())
         .set(SECRETS_CONTENT.ENCRYPTED_CONTENT, secret2a.content().encryptedContent())
+        .set(SECRETS_CONTENT.CONTENT_HMAC, "hmac")
         .set(SECRETS_CONTENT.CREATEDBY, secret2a.content().createdBy())
         .set(SECRETS_CONTENT.CREATEDAT, secret2a.content().createdAt().toEpochSecond())
         .set(SECRETS_CONTENT.UPDATEDBY, secret2a.content().updatedBy())
@@ -125,6 +127,7 @@ public class SecretDAOTest {
         .set(SECRETS_CONTENT.ID, secret2b.content().id())
         .set(SECRETS_CONTENT.SECRETID, secret2b.series().id())
         .set(SECRETS_CONTENT.ENCRYPTED_CONTENT, secret2b.content().encryptedContent())
+        .set(SECRETS_CONTENT.CONTENT_HMAC, "hmac")
         .set(SECRETS_CONTENT.CREATEDBY, secret2b.content().createdBy())
         .set(SECRETS_CONTENT.CREATEDAT, secret2b.content().createdAt().toEpochSecond())
         .set(SECRETS_CONTENT.UPDATEDBY, secret2b.content().updatedBy())
@@ -147,6 +150,7 @@ public class SecretDAOTest {
         .set(SECRETS_CONTENT.ID, secret3.content().id())
         .set(SECRETS_CONTENT.SECRETID, secret3.series().id())
         .set(SECRETS_CONTENT.ENCRYPTED_CONTENT, secret3.content().encryptedContent())
+        .set(SECRETS_CONTENT.CONTENT_HMAC, "hmac")
         .set(SECRETS_CONTENT.CREATEDBY, secret3.content().createdBy())
         .set(SECRETS_CONTENT.CREATEDAT, secret3.content().createdAt().toEpochSecond())
         .set(SECRETS_CONTENT.UPDATEDBY, secret3.content().updatedBy())
@@ -168,8 +172,9 @@ public class SecretDAOTest {
 
     String name = "newSecret";
     String content = "c2VjcmV0MQ==";
+    String hmac = cryptographer.computeHmac(content.getBytes());
     String encryptedContent = cryptographer.encryptionKeyDerivedFrom(name).encrypt(content);
-    long newId = secretDAO.createSecret(name, encryptedContent, "creator",
+    long newId = secretDAO.createSecret(name, encryptedContent, hmac, "creator",
         ImmutableMap.of(), 0, "", null, ImmutableMap.of());
     SecretSeriesAndContent newSecret = secretDAO.getSecretById(newId).get();
 
@@ -183,13 +188,13 @@ public class SecretDAOTest {
   @Test(expected = DataAccessException.class)
   public void createSecretFailsIfSecretExists() {
     String name = "newSecret";
-    secretDAO.createSecret(name, "some secret", "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
-    secretDAO.createSecret(name, "some secret", "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
+    secretDAO.createSecret(name, "some secret", "hmac", "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
+    secretDAO.createSecret(name, "some secret", "hmac", "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
   }
 
   @Test public void createSecretSucceedsIfCurrentVersionIsNull() {
     String name = "newSecret";
-    long firstId = secretDAO.createSecret(name, "content1", "creator1",
+    long firstId = secretDAO.createSecret(name, "content1", cryptographer.computeHmac("content1".getBytes()), "creator1",
         ImmutableMap.of("foo", "bar"), 1000, "description1", "type1", ImmutableMap.of());
 
     jooqContext.update(SECRETS)
@@ -197,7 +202,7 @@ public class SecretDAOTest {
         .where(SECRETS.ID.eq(firstId))
         .execute();
 
-    long secondId = secretDAO.createSecret(name, "content2", "creator2",
+    long secondId = secretDAO.createSecret(name, "content2", cryptographer.computeHmac("content2".getBytes()), "creator2",
         ImmutableMap.of("foo2", "bar2"), 2000, "description2", "type2", ImmutableMap.of());
     assertThat(secondId).isEqualTo(firstId);
 
@@ -221,8 +226,9 @@ public class SecretDAOTest {
 
     String name = "newSecret";
     String content = "c2VjcmV0MQ==";
+    String hmac = cryptographer.computeHmac(content.getBytes());
     String encryptedContent = cryptographer.encryptionKeyDerivedFrom(name).encrypt(content);
-    long newId = secretDAO.createOrUpdateSecret(name, encryptedContent, "creator",
+    long newId = secretDAO.createOrUpdateSecret(name, encryptedContent, hmac, "creator",
         ImmutableMap.of(), 0, "", null, ImmutableMap.of());
     SecretSeriesAndContent newSecret = secretDAO.getSecretById(newId).get();
 
@@ -235,10 +241,10 @@ public class SecretDAOTest {
 
   @Test public void createOrUpdateSecretWhenSecretExists() {
     String name = "newSecret";
-    long firstId = secretDAO.createSecret(name, "content1", "creator1",
+    long firstId = secretDAO.createSecret(name, "content1", cryptographer.computeHmac("content1".getBytes()), "creator1",
         ImmutableMap.of("foo", "bar"), 1000, "description1", "type1", ImmutableMap.of());
 
-    long secondId = secretDAO.createOrUpdateSecret(name, "content2", "creator2",
+    long secondId = secretDAO.createOrUpdateSecret(name, "content2", cryptographer.computeHmac("content2".getBytes()), "creator2",
         ImmutableMap.of("foo2", "bar2"), 2000, "description2", "type2", ImmutableMap.of());
     assertThat(secondId).isEqualTo(firstId);
 
@@ -273,7 +279,7 @@ public class SecretDAOTest {
     String name = "nonExistantSecret";
     assertThat(secretDAO.getSecretByName(name).isPresent()).isFalse();
 
-    long newId = secretDAO.createSecret(name, "content", "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
+    long newId = secretDAO.createSecret(name, "content", cryptographer.computeHmac("content".getBytes()), "creator", ImmutableMap.of(), 0, "", null, ImmutableMap.of());
     SecretSeriesAndContent newSecret = secretDAO.getSecretById(newId).get();
 
     assertThat(secretDAO.getSecretByName(name).isPresent()).isTrue();
@@ -322,7 +328,7 @@ public class SecretDAOTest {
   }
 
   @Test public void deleteSecretsByName() {
-    secretDAO.createSecret("toBeDeleted_deleteSecretsByName", "encryptedShhh", "creator",
+    secretDAO.createSecret("toBeDeleted_deleteSecretsByName", "encryptedShhh", cryptographer.computeHmac("encryptedShhh".getBytes()), "creator",
         ImmutableMap.of(), 0, "", null, null);
 
     secretDAO.deleteSecretsByName("toBeDeleted_deleteSecretsByName");

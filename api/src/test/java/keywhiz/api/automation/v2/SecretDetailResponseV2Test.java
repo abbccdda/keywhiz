@@ -65,7 +65,7 @@ public class SecretDetailResponseV2Test {
   }
 
   @Test public void formsCorrectlyFromSecret() throws Exception {
-    Secret secret = new Secret(1, "secret-name", "secret-description", () -> "",
+    Secret secret = new Secret(1, "secret-name", "secret-description", () -> "", "hmac",
         ApiDate.parse("2013-03-28T21:23:04.159Z"), "creator-user",
         ApiDate.parse("2013-03-28T21:23:04.159Z"), "creator-user",
         ImmutableMap.of("owner", "root"), "text/plain", null,

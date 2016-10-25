@@ -85,8 +85,9 @@ public class SecretController {
     checkArgument(!name.isEmpty());
     checkArgument(!secret.isEmpty());
     checkArgument(!creator.isEmpty());
+    String hmac = cryptographer.computeHmac(secret.getBytes()); // Compute HMAC on base64 encoded data
     String encryptedSecret = cryptographer.encryptionKeyDerivedFrom(name).encrypt(secret);
-    return new SecretBuilder(transformer, secretDAO, name, encryptedSecret, creator, expiry);
+    return new SecretBuilder(transformer, secretDAO, name, encryptedSecret, hmac, creator, expiry);
   }
 
   /** Builder to generate new secret series or versions with. */
@@ -95,6 +96,7 @@ public class SecretController {
     private final SecretDAO secretDAO;
     private final String name;
     private final String encryptedSecret;
+    private final String hmac;
     private final String creator;
     private String description = "";
     private Map<String, String> metadata = ImmutableMap.of();
@@ -110,11 +112,12 @@ public class SecretController {
      * @param creator username responsible for creating this secret version.
      */
     private SecretBuilder(SecretTransformer transformer, SecretDAO secretDAO, String name, String encryptedSecret,
-        String creator, long expiry) {
+        String hmac, String creator, long expiry) {
       this.transformer = transformer;
       this.secretDAO = secretDAO;
       this.name = name;
       this.encryptedSecret = encryptedSecret;
+      this.hmac = hmac;
       this.creator = creator;
       this.expiry = expiry;
     }
@@ -155,13 +158,13 @@ public class SecretController {
      * @return an instance of the newly created secret.
      */
     public Secret create() {
-        secretDAO.createSecret(name, encryptedSecret, creator, metadata, expiry, description, type,
+        secretDAO.createSecret(name, encryptedSecret, hmac, creator, metadata, expiry, description, type,
             generationOptions);
         return transformer.transform(secretDAO.getSecretByName(name).get());
     }
 
     public Secret createOrUpdate() {
-      secretDAO.createOrUpdateSecret(name, encryptedSecret, creator, metadata, expiry, description, type,
+      secretDAO.createOrUpdateSecret(name, encryptedSecret, hmac, creator, metadata, expiry, description, type,
           generationOptions);
       return transformer.transform(secretDAO.getSecretByName(name).get());
     }

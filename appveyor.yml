@@ -1,0 +1,7 @@
+install:
+  - mvn clean install
+
+test_script:
+  - mvn test findbugs:check jacoco:report coveralls:report -P h2
+
+build: off

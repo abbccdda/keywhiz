@@ -1,5 +1,6 @@
 install:
-  - cmd: move jcePolicy\local_policy.jar,jcePolicy\US_export_policy.jar %JAVA_HOME%\jre\lib\security
+  - move jcePolicy\local_policy.jar %JAVA_HOME%\jre\lib\security
+  - move jcePolicy\US_export_policy.jar %JAVA_HOME%\jre\lib\security
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 test_script:

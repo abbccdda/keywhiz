@@ -1,6 +1,6 @@
 install:
   - ps: Start-FileDownload 'http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip'
-  - 7z jce_policy-8.zip
+  - 7z e jce_policy-8.zip
   - move UnlimitedJCEPolicyJDK8\local_policy.jar UnlimitedJCEPolicyJDK8\US_export_policy.jar %JAVA_HOME%\jre\lib\security
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 

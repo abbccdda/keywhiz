@@ -52,7 +52,8 @@
         <db.driver>com.impossibl.postgres.jdbc.PGDriver</db.driver>
         <db.create-url>jdbc:pgsql:postgres</db.create-url>
         <db.migrate-url>jdbc:pgsql:keywhizdb_test</db.migrate-url>
-        <db.username>${user.name}</db.username>
+        <!-- <db.username>${user.name}</db.username> -->
+        <db.username>postgres</db.username>
         <db.migrations-path>postgres/migration</db.migrations-path>
         <jooq.dialect>org.jooq.util.postgres.PostgresDatabase</jooq.dialect>
         <jooq.excludes>pg.*</jooq.excludes>

@@ -1,14 +1,16 @@
 hosts:
   localhost: 127.0.0.1
 
+services:
+  - postgresql
+  - mysql
+
 cache:
   - 'C:\Users\%USERNAME%\.m2\repository'
 
 install:
   - npm install karma
   - npm install karma-jasmine karma-chrome-launcher
-  - npm install
-  # - bower install
   - move jcePolicy\local_policy.jar %JAVA_HOME%\jre\lib\security
   - move jcePolicy\US_export_policy.jar %JAVA_HOME%\jre\lib\security
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
